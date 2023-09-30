@@ -21,7 +21,11 @@ function PlaybackMode({ trackId, param }: Props) {
   //   (state) => state.context.currentTracks
   // );
   const currentTracks = useLiveQuery(() => db.currentTracks.toArray());
-  const playbackMode = currentTracks && currentTracks[trackId][`${param}Mode`];
+  console.log("currentTracks", currentTracks);
+  const playbackMode =
+    currentTracks &&
+    currentTracks[trackId] &&
+    currentTracks[trackId][`${param}Mode`];
 
   const { send } = MixerMachineContext.useActorRef();
   // const playbackMode = MixerMachineContext.useSelector(

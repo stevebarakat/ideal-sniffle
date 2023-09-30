@@ -17,11 +17,13 @@ export default function TrackPanel({ children, trackId }: PanelProps) {
   );
 
   const [panelPosition, setPanelPosition] = useState(
-    currentTracks && currentTracks[trackId].panelPosition
+    currentTracks &&
+      currentTracks[trackId] &&
+      currentTracks[trackId].panelPosition
   );
 
   const [panelSize, setPanelSize] = useState(
-    currentTracks && currentTracks[trackId].panelSize
+    currentTracks && currentTracks[trackId] && currentTracks[trackId].panelSize
   );
 
   useEffect(() => {

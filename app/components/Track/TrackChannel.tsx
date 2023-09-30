@@ -50,7 +50,7 @@ function TrackChannel({ track, trackId, channels }: Props) {
   const [currentTrackFx, setCurrentTrackFx] = useState<Fx>(new Volume());
 
   const [fxNames, setFxNames] = useState(
-    currentTracks && currentTracks[trackId].fxNames
+    currentTracks && currentTracks[trackId] && currentTracks[trackId].fxNames
   );
 
   useEffect(() => {
@@ -163,7 +163,10 @@ function TrackChannel({ track, trackId, channels }: Props) {
     }
   }
   const panelEmpty = fxNames?.every((name: string) => name === "nofx");
-  const panelActive = currentTracks && currentTracks[trackId].panelActive;
+  const panelActive =
+    currentTracks &&
+    currentTracks[trackId] &&
+    currentTracks[trackId].panelActive;
 
   return (
     <div className="flex-y gap2">
@@ -178,7 +181,9 @@ function TrackChannel({ track, trackId, channels }: Props) {
         >
           {disabled
             ? "No "
-            : currentTracks && currentTracks[trackId].panelActive === false
+            : currentTracks &&
+              currentTracks[trackId] &&
+              currentTracks[trackId].panelActive === false
             ? "Close "
             : "Open "}
           FX
