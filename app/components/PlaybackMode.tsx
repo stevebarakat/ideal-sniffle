@@ -46,7 +46,6 @@ function PlaybackMode({ trackId, param }: Props) {
     db[`${param}Data`].where("id").equals(`${param}Data${trackId}`).delete();
   }
 
-  console.log("playbackMode", playbackMode);
   return (
     <div className="flex gap4">
       {/* {playbackMode} */}

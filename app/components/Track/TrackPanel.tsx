@@ -27,6 +27,7 @@ export default function TrackPanel({ children, trackId }: PanelProps) {
   useEffect(() => {
     const getCurrentTracks = new Promise((resolve) => resolve(currentTracks));
     getCurrentTracks.then((value) => {
+      if (!Array.isArray(value)) return;
       setPanelPosition(value[trackId].panelPosition);
       setPanelSize(value[trackId].panelSize);
     });
@@ -69,8 +70,6 @@ export default function TrackPanel({ children, trackId }: PanelProps) {
       .equals(currentTracks[trackId].path)
       .modify({ panelActive: !currentTracks[trackId].panelActive });
   }
-
-  console.log("panelSize", panelSize);
 
   return (
     <FxPanel

@@ -15,7 +15,6 @@ export const loader: LoaderFunction = async ({ params: { slug } }) => {
     );
   if (!mixData) throw new Error("Mix not found");
   const data = { mixData };
-  console.log("data", data);
   return data;
   return new Response(mixData, {
     status: 200,

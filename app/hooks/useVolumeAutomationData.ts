@@ -96,9 +96,7 @@ function useRead({ trackId }: Props) {
   useEffect(() => {
     if (playbackMode !== "read" || !volumeData) return;
 
-    console.log("volumeData", volumeData);
     for (const value of volumeData.data.values()) {
-      console.log("value", value);
       setParam(value.id, value);
     }
   }, [volumeData, setParam, playbackMode]);

@@ -9,7 +9,6 @@ import { upperFirst } from "lodash";
 import useVolumeAutomationData from "@/hooks/useVolumeAutomationData";
 import { ChannelButton } from "../Buttons";
 import { array } from "@/utils";
-import { MixerMachineContext } from "@/context/MixerMachineContext";
 import TrackPanel from "./TrackPanel";
 import {
   Delay,
@@ -40,17 +39,28 @@ function TrackChannel({ track, trackId, channels }: Props) {
     pitchShift: usePitchShift(),
   };
 
-  const currentTracks = useLiveQuery(() => db.currentTracks.toArray());
+  const currentTracks = useLiveQuery(
+    async () => await db.currentTracks.toArray()
+  );
 
   const meters = useRef(
     Array(channels.length).fill(new Meter({ channels: 2 }))
   );
 
-  const { send } = MixerMachineContext.useActorRef();
-
   const [currentTrackFx, setCurrentTrackFx] = useState<Fx>(new Volume());
 
-  const fxNames = currentTracks && currentTracks[trackId].fxNames;
+  const [fxNames, setFxNames] = useState(
+    currentTracks && currentTracks[trackId].fxNames
+  );
+
+  useEffect(() => {
+    const getCurrentTracks = new Promise((resolve) => resolve(currentTracks));
+    getCurrentTracks.then((value) => {
+      if (!Array.isArray(value)) return;
+      setFxNames(value[trackId].fxNames);
+    });
+  }, [currentTracks, trackId]);
+
   const disabled =
     fxNames &&
     fxNames?.every((item: string) => {
@@ -129,16 +139,21 @@ function TrackChannel({ track, trackId, channels }: Props) {
   ) {
     const fxName = e.currentTarget.value;
     const id = e.currentTarget.id.at(-1);
-    const fxId = parseInt(id!, 10);
 
     const currentTracks = await db.currentTracks.orderBy("id").toArray();
 
     if (action === "remove") {
       channels[trackId].disconnect();
+      if (!id) return;
+      const fxId = parseInt(id, 10);
 
-      currentTracks[trackId].fxNames.splice(fxId, 1);
+      const spliced = currentTracks[trackId].fxNames.toSpliced(fxId, 1);
+      currentTracks[trackId].fxNames = spliced;
+      console.log("spliced", spliced);
+      setFxNames(spliced);
       await db.currentTracks.put({ ...currentTracks[trackId] });
     } else {
+      setFxNames([...currentTracks[trackId].fxNames, fxName].reverse());
       await db.currentTracks
         .where("path")
         .equals(currentTracks[trackId].path)
@@ -148,11 +163,12 @@ function TrackChannel({ track, trackId, channels }: Props) {
     }
   }
   const panelEmpty = fxNames?.every((name: string) => name === "nofx");
+  const panelActive = currentTracks && currentTracks[trackId].panelActive;
 
   return (
     <div className="flex-y gap2">
       <>
-        {!panelEmpty && (
+        {!panelEmpty && !panelActive && (
           <TrackPanel trackId={trackId}>{currentFx.map((fx) => fx)}</TrackPanel>
         )}
         <ChannelButton

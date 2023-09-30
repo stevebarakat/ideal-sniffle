@@ -107,7 +107,6 @@ function useTrackFx(trackId: number, channel: Channel, trackFx: TrackFx) {
           break;
       }
     });
-    console.log("fxComponents.current", fxComponents.current);
     const fxProps: InputNode[] = fxComponents.current.map((fx) => fx.props);
     const fxNodes = fxProps.map((prop) => Object.values(prop)[0]);
     channel.disconnect();
