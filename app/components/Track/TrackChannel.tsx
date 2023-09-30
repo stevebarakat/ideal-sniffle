@@ -57,11 +57,12 @@ function TrackChannel({ track, trackId, channels }: Props) {
       return item === "nofx";
     });
 
-  function handleClick() {
-    send({
-      type: "SET_ACTIVE_TRACK_PANELS",
-      trackId,
-    });
+  async function handleClick() {
+    if (!currentTracks) return;
+    await db.currentTracks
+      .where("path")
+      .equals(currentTracks[trackId].path)
+      .modify({ panelActive: !currentTracks[trackId].panelActive });
   }
   useEffect(() => {
     fxNames?.forEach((name) => {
@@ -130,14 +131,21 @@ function TrackChannel({ track, trackId, channels }: Props) {
     const id = e.currentTarget.id.at(-1);
     const fxId = parseInt(id!, 10);
 
-    send({
-      type: "SET_TRACK_FX_NAMES",
-      trackId,
-      fxId,
-      action,
-      channels,
-      value: fxName,
-    });
+    const currentTracks = await db.currentTracks.orderBy("id").toArray();
+
+    if (action === "remove") {
+      channels[trackId].disconnect();
+
+      currentTracks[trackId].fxNames.splice(fxId, 1);
+      await db.currentTracks.put({ ...currentTracks[trackId] });
+    } else {
+      await db.currentTracks
+        .where("path")
+        .equals(currentTracks[trackId].path)
+        .modify({
+          fxNames: [...currentTracks[trackId].fxNames, fxName].reverse(),
+        });
+    }
   }
   const panelEmpty = fxNames?.every((name: string) => name === "nofx");
 
