@@ -20,17 +20,21 @@ type Props = {
 };
 
 export const Mixer = ({ mixData }: Props) => {
-  // const { sourceSong } = MixerMachineContext.useSelector(
-  //   (state) => state.context
-  // );
-
-  const sourceSong =
+  const defaultSourceSong =
     useLiveQuery(async () => {
       const temp = await db.sourceSong.toArray();
       return temp[0];
     }) || roxanne;
 
-  // if (!sourceSong) window.location.reload();
+  const [sourceSong, setSourceSong] = useState(defaultSourceSong);
+
+  useEffect(() => {
+    const getSourceSong = new Promise((resolve) => resolve(sourceSong));
+    getSourceSong.then((value) => {
+      if (!Array.isArray(value)) return;
+      setSourceSong(value[0]);
+    });
+  }, [sourceSong]);
 
   const currentTracks = useLiveQuery(
     async () => await db.currentTracks.toArray()
@@ -49,7 +53,7 @@ export const Mixer = ({ mixData }: Props) => {
   const { channels, isLoading } = useTracks({ tracks });
 
   (function loadSettings() {
-    // t.bpm.value = sourceSong.bpm;
+    t.bpm.value = sourceSong.bpm;
     // const volume = currentMain.volume;
     // const scaled = dbToPercent(log(volume));
     // Destination.volume.value = scaled;
