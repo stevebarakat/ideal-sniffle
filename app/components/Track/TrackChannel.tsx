@@ -41,17 +41,6 @@ function TrackChannel({ track, trackId, channels }: Props) {
   };
 
   const currentTracks = useLiveQuery(() => db.currentTracks.toArray());
-  // const currentTracks = MixerMachineContext.useSelector(
-  //   (state) => state.context.currentTracks
-  // );
-  const [fxNames, setFxNames] = useState(
-    () => (currentTracks && currentTracks[trackId].fxNames) ?? ["nofx"]
-  );
-
-  useEffect(() => {
-    if (!currentTracks) return;
-    setFxNames(currentTracks[trackId].fxNames);
-  }, [currentTracks, trackId]);
 
   const meters = useRef(
     Array(channels.length).fill(new Meter({ channels: 2 }))
@@ -61,6 +50,7 @@ function TrackChannel({ track, trackId, channels }: Props) {
 
   const [currentTrackFx, setCurrentTrackFx] = useState<Fx>(new Volume());
 
+  const fxNames = currentTracks && currentTracks[trackId].fxNames;
   const disabled =
     fxNames &&
     fxNames?.every((item: string) => {
