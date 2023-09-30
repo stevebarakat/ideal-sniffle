@@ -5,7 +5,7 @@ type Props = {
 function SongInfo({ song }: Props) {
   return (
     <h2>
-      {song.artist} - {song.title}
+      {song?.artist} - {song?.title}
     </h2>
   );
 }

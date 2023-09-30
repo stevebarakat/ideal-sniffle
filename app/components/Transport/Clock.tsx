@@ -13,13 +13,13 @@ function Clock({ song }: Props) {
 
   // TODO - make this a guard in XState
   // make sure song starts at begining and stops at end
-  if (song.end !== null && song.start !== null) {
-    if (t.seconds < song.start) {
-      t.seconds = song.start;
+  if (song?.end !== null && song?.start !== null) {
+    if (t.seconds < song?.start) {
+      t.seconds = song?.start;
     }
-    if (t.seconds > song.end) {
+    if (t.seconds > song?.end) {
       t.stop();
-      t.seconds = song.end;
+      t.seconds = song?.end;
     }
   }
 

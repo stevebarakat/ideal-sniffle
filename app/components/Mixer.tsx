@@ -9,24 +9,43 @@ import { TrackChannel } from "./Track";
 import Main from "./Main";
 import { MixerMachineContext } from "@/context/MixerMachineContext";
 import { Destination, Transport as t } from "tone";
-import { useFetcher, useLoaderData } from "@remix-run/react";
-import { json } from "@remix-run/node";
-import { prisma } from "~/utils/db.server";
-import { useRef } from "react";
 import type { MixData } from "@prisma/client";
+import { useLiveQuery } from "dexie-react-hooks";
+import { db } from "~/db";
+import { roxanne } from "~/assets/songs";
+import { useEffect, useState } from "react";
 
 type Props = {
   mixData: MixData[];
 };
 
 export const Mixer = ({ mixData }: Props) => {
-  const fetcher = useFetcher();
-  const { currentTracks, currentMain, sourceSong } =
-    MixerMachineContext.useSelector((state) => state.context);
+  // const { sourceSong } = MixerMachineContext.useSelector(
+  //   (state) => state.context
+  // );
 
-  if (!sourceSong) window.location.reload();
+  const sourceSong =
+    useLiveQuery(async () => {
+      const temp = await db.sourceSong.toArray();
+      return temp[0];
+    }) || roxanne;
 
-  const tracks = sourceSong.tracks;
+  // if (!sourceSong) window.location.reload();
+
+  const currentTracks = useLiveQuery(
+    async () => await db.currentTracks.toArray()
+  );
+
+  const [tracks, setTracks] = useState(sourceSong.tracks);
+
+  useEffect(() => {
+    const getCurrentTracks = new Promise((resolve) => resolve(currentTracks));
+    getCurrentTracks.then((value) => {
+      if (!Array.isArray(value)) return;
+      setTracks(value);
+    });
+  }, [currentTracks]);
+
   const { channels, isLoading } = useTracks({ tracks });
 
   (function loadSettings() {
@@ -35,7 +54,7 @@ export const Mixer = ({ mixData }: Props) => {
     // const scaled = dbToPercent(log(volume));
     // Destination.volume.value = scaled;
 
-    currentTracks.forEach((currentTrack: TrackSettings, trackId: number) => {
+    currentTracks?.forEach((currentTrack: TrackSettings, trackId: number) => {
       const value = currentTrack.volume;
       const scaled = dbToPercent(log(value));
 
@@ -60,7 +79,7 @@ export const Mixer = ({ mixData }: Props) => {
 
           <ImportExport mixData={mixData} />
           <div className="channels">
-            {tracks.map((track, i) => (
+            {tracks?.map((track, i) => (
               <TrackChannel
                 key={track.id}
                 track={track}

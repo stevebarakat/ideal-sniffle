@@ -98,9 +98,9 @@ function TrackChannel({ track, trackId, channels }: Props) {
       }
     });
 
-    channels[trackId].disconnect();
-    channels[trackId].connect(meters.current[trackId].toDestination());
-    currentTrackFx && channels[trackId].chain(currentTrackFx, Destination);
+    channels[trackId]?.disconnect();
+    channels[trackId]?.connect(meters.current[trackId]?.toDestination());
+    currentTrackFx && channels[trackId]?.chain(currentTrackFx, Destination);
   });
 
   let currentFx: JSX.Element[] = [];

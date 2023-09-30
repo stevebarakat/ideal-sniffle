@@ -1,4 +1,4 @@
-import { Mixer } from "@/components/Mixer";
+import { Mixer } from "~/components/Mixer";
 import { MixerMachineContext } from "@/context/MixerMachineContext";
 import { useFetcher } from "@remix-run/react";
 import { useEffect } from "react";

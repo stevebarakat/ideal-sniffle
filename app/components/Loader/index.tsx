@@ -6,7 +6,7 @@ const Spinner = ({ song }: Props) => {
   return (
     <div className="loader">
       <span>
-        Loading: {song.artist} - {song.title}
+        Loading: {song?.artist} - {song?.title}
       </span>
       <div className="spinner">
         <div />
