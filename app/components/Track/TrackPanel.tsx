@@ -1,5 +1,4 @@
 import { useState, type ReactNode, useEffect } from "react";
-import { MixerMachineContext } from "~/context/MixerMachineContext";
 import { CloseButton } from "@/components/Buttons";
 import { Rnd as FxPanel } from "react-rnd";
 import { useLiveQuery } from "dexie-react-hooks";
@@ -11,7 +10,6 @@ type PanelProps = {
 };
 
 export default function TrackPanel({ children, trackId }: PanelProps) {
-  const { send } = MixerMachineContext.useActorRef();
   const currentTracks = useLiveQuery(
     async () => await db.currentTracks.toArray()
   );

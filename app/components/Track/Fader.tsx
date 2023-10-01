@@ -16,16 +16,8 @@ function Fader({ trackId, channels, meters }: Props) {
   const meterVal = useMeters([channels[trackId]], meters);
   const currentTracks = JSON.parse(localStorage.getItem("currentTracks")!);
   const [volume, setVolume] = useState(
-    currentTracks && currentTracks[trackId].volume
+    currentTracks && currentTracks[trackId] && currentTracks[trackId].volume
   );
-
-  useEffect(() => {
-    const getCurrentTracks = new Promise((resolve) => resolve(currentTracks));
-    getCurrentTracks.then((value) => {
-      if (!Array.isArray(value)) return;
-      setVolume(value[trackId].volume);
-    });
-  }, [currentTracks, trackId]);
 
   function setTrackVolume(e: React.FormEvent<HTMLInputElement>): void {
     const value = parseFloat(e.currentTarget.value);

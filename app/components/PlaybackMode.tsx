@@ -1,4 +1,4 @@
-import { MixerMachineContext } from "@/context/MixerMachineContext";
+// import { MixerMachineContext } from "@/context/MixerMachineContext";
 import Toggle from "./Buttons/Toggle";
 import { Button } from "./Buttons";
 import {
@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "@/db";
+import { useEffect, useState } from "react";
 
 type Props = {
   trackId: number;
@@ -17,34 +18,36 @@ type Props = {
 };
 
 function PlaybackMode({ trackId, param }: Props) {
-  // const currentTracks = MixerMachineContext.useSelector(
-  //   (state) => state.context.currentTracks
-  // );
   const currentTracks = useLiveQuery(() => db.currentTracks.toArray());
-  console.log("currentTracks", currentTracks);
-  const playbackMode =
+  const [playbackMode, setPlaybackMode] = useState(
     currentTracks &&
-    currentTracks[trackId] &&
-    currentTracks[trackId][`${param}Mode`];
+      currentTracks[trackId] &&
+      currentTracks[trackId][`${param}Mode`]
+  );
 
-  const { send } = MixerMachineContext.useActorRef();
-  // const playbackMode = MixerMachineContext.useSelector(
-  //   (state) => state.context.currentTracks[trackId][`${param}Mode`]
-  // );
-  // const currentTracks = MixerMachineContext.useSelector(
-  //   (state) => state.context.currentTracks
-  // );
-  function setPlaybackMode(e: React.FormEvent<HTMLInputElement>): void {
+  function setTrackPlaybackMode(e: React.FormEvent<HTMLInputElement>): void {
     const data = JSON.parse(JSON.stringify(currentTracks));
     data[trackId][`${param}Mode`] = e.currentTarget.value;
-    db.currentTracks.put({ id: "currentTracks", ...data });
-    send({
-      type: "SET_PLAYBACK_MODE",
-      value: e.currentTarget.value,
-      param,
-      trackId,
-    });
+    setPlaybackMode(e.currentTarget.value);
+
+    if (!currentTracks) return;
+    (async () => {
+      await db.currentTracks
+        .where("path")
+        .equals(currentTracks[trackId].path)
+        .modify({
+          [`${param}Mode`]: e.currentTarget.value,
+        });
+    })();
   }
+
+  useEffect(() => {
+    const getCurrentTracks = new Promise((resolve) => resolve(currentTracks));
+    getCurrentTracks.then((value) => {
+      if (!Array.isArray(value)) return;
+      setPlaybackMode(value[trackId][`${param}Mode`]);
+    });
+  }, [currentTracks, trackId, param]);
 
   function clearData() {
     db[`${param}Data`].where("id").equals(`${param}Data${trackId}`).delete();
@@ -52,12 +55,12 @@ function PlaybackMode({ trackId, param }: Props) {
 
   return (
     <div className="flex gap4">
-      {/* {playbackMode} */}
+      {playbackMode}
       <Toggle
         type="radio"
         id={`track${trackId + 1}-${param}-write`}
         name={`track${trackId + 1}-${param}playbackMode`}
-        onChange={setPlaybackMode}
+        onChange={setTrackPlaybackMode}
         checked={playbackMode === "write"}
         value="write"
       >
@@ -71,7 +74,7 @@ function PlaybackMode({ trackId, param }: Props) {
         type="radio"
         id={`track${trackId + 1}-${param}-read`}
         name={`track${trackId + 1}-${param}playbackMode`}
-        onChange={setPlaybackMode}
+        onChange={setTrackPlaybackMode}
         checked={playbackMode === "read"}
         value="read"
       >
@@ -81,7 +84,7 @@ function PlaybackMode({ trackId, param }: Props) {
         type="radio"
         id={`track${trackId + 1}-${param}-static`}
         name={`track${trackId + 1}-${param}playbackMode`}
-        onChange={setPlaybackMode}
+        onChange={setTrackPlaybackMode}
         checked={playbackMode === "static"}
         value="static"
       >
