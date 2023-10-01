@@ -35,12 +35,10 @@ function TrackChannel({ track, trackId, channels }: Props) {
 
   useVolumeAutomationData({ trackId, channels, volume, setVolume });
 
-  const fx = {
-    nofx: useNoFx(),
-    delay: useDelay(),
-    reverb: useReverb(),
-    pitchShift: usePitchShift(),
-  };
+  const nofx = useNoFx();
+  const delay = useDelay();
+  const reverb = useReverb();
+  const pitchShift = usePitchShift();
 
   const currentTracks = useLiveQuery(
     async () => await db.currentTracks.toArray()
@@ -50,7 +48,9 @@ function TrackChannel({ track, trackId, channels }: Props) {
     Array(channels.length).fill(new Meter({ channels: 2 }))
   );
 
-  const [currentTrackFx, setCurrentTrackFx] = useState<Fx>(new Volume());
+  const [currentTrackFx, setCurrentTrackFx] = useState(
+    Array(localTracks[trackId].fxNames.length).fill(new Volume())
+  );
 
   const [fxNames, setFxNames] = useState(
     currentTracks && currentTracks[trackId] && currentTracks[trackId].fxNames
@@ -77,47 +77,54 @@ function TrackChannel({ track, trackId, channels }: Props) {
       .equals(currentTracks[trackId].path)
       .modify({ panelActive: !currentTracks[trackId].panelActive });
   }
+
   useEffect(() => {
-    fxNames?.forEach((name) => {
+    fxNames?.forEach((name, fxId) => {
       switch (name) {
         case "nofx":
-          setCurrentTrackFx(fx.nofx);
+          currentTrackFx[fxId] = nofx;
+          setCurrentTrackFx(() => currentTrackFx);
           break;
 
         case "reverb":
-          setCurrentTrackFx(fx.reverb);
+          currentTrackFx[fxId] = reverb;
+          setCurrentTrackFx(() => currentTrackFx);
           break;
 
         case "delay":
-          setCurrentTrackFx(fx.delay);
+          currentTrackFx[fxId] = delay;
+          setCurrentTrackFx(() => currentTrackFx);
           break;
 
         case "pitchShift":
-          setCurrentTrackFx(fx.pitchShift);
+          currentTrackFx[fxId] = pitchShift;
+          setCurrentTrackFx(() => currentTrackFx);
           break;
 
         default:
           break;
       }
-    });
+    }, []);
 
-    channels[trackId]?.disconnect();
-    channels[trackId]?.connect(meters.current[trackId]?.toDestination());
-    currentTrackFx && channels[trackId]?.chain(currentTrackFx, Destination);
+    channels[trackId].disconnect();
+    channels[trackId].connect(meters.current[trackId].toDestination());
+    currentTrackFx.forEach((ctf) => {
+      ctf && channels[trackId].chain(ctf, Destination);
+    });
   });
 
   let currentFx: JSX.Element[] = [];
-  fxNames?.map((fxName) => {
+  fxNames?.forEach((fxName) => {
     switch (fxName) {
       case "reverb":
         currentFx = [
-          <Reverber key="reverb" reverb={fx.reverb} trackId={trackId} />,
+          <Reverber key="reverb" reverb={reverb} trackId={trackId} />,
           ...currentFx,
         ];
         break;
       case "delay":
         currentFx = [
-          <Delay key="delay" delay={fx.delay} trackId={trackId} />,
+          <Delay key="delay" delay={delay} trackId={trackId} />,
           ...currentFx,
         ];
         break;
@@ -125,7 +132,7 @@ function TrackChannel({ track, trackId, channels }: Props) {
         currentFx = [
           <PitchShifter
             key="pitchShift"
-            pitchShift={fx.pitchShift}
+            pitchShift={pitchShift}
             trackId={trackId}
           />,
           ...currentFx,
@@ -143,26 +150,26 @@ function TrackChannel({ track, trackId, channels }: Props) {
     const fxName = e.currentTarget.value;
     const id = e.currentTarget.id.at(-1);
 
-    const currentTracks = await db.currentTracks.orderBy("id").toArray();
-
     if (action === "remove") {
       channels[trackId].disconnect();
       if (!id) return;
       const fxId = parseInt(id, 10);
 
+      const currentTracks = JSON.parse(localStorage.getItem("currentTracks")!);
+
       const spliced = currentTracks[trackId].fxNames.toSpliced(fxId, 1);
       currentTracks[trackId].fxNames = spliced;
+      localStorage.setItem("currentTracks", JSON.stringify(currentTracks));
       console.log("spliced", spliced);
       setFxNames(spliced);
-      await db.currentTracks.put({ ...currentTracks[trackId] });
     } else {
+      const currentTracks = JSON.parse(localStorage.getItem("currentTracks")!);
       setFxNames([...currentTracks[trackId].fxNames, fxName].reverse());
-      await db.currentTracks
-        .where("path")
-        .equals(currentTracks[trackId].path)
-        .modify({
-          fxNames: [...currentTracks[trackId].fxNames, fxName].reverse(),
-        });
+      currentTracks[trackId].fxNames = [
+        ...currentTracks[trackId].fxNames,
+        fxName,
+      ].reverse();
+      localStorage.setItem("currentTracks", JSON.stringify(currentTracks));
     }
   }
   const panelEmpty = fxNames?.every((name: string) => name === "nofx");
