@@ -10,57 +10,32 @@ type PanelProps = {
 };
 
 export default function TrackPanel({ children, trackId }: PanelProps) {
-  const currentTracks = useLiveQuery(
-    async () => await db.currentTracks.toArray()
-  );
+  const currentTracks = JSON.parse(localStorage.getItem("currentTracks")!);
 
   const [panelPosition, setPanelPosition] = useState(
-    currentTracks &&
-      currentTracks[trackId] &&
-      currentTracks[trackId].panelPosition
+    currentTracks[trackId].panelPosition
   );
 
-  const [panelSize, setPanelSize] = useState(
-    currentTracks && currentTracks[trackId] && currentTracks[trackId].panelSize
-  );
-
-  useEffect(() => {
-    const getCurrentTracks = new Promise((resolve) => resolve(currentTracks));
-    getCurrentTracks.then((value) => {
-      if (!Array.isArray(value)) return;
-      setPanelPosition(value[trackId].panelPosition);
-      setPanelSize(value[trackId].panelSize);
-    });
-  }, [currentTracks, trackId]);
+  const [panelSize, setPanelSize] = useState(currentTracks[trackId].panelSize);
 
   function handleResize(ref: HTMLElement) {
     setPanelSize({
       width: ref.style.width,
       height: "auto",
     });
-    if (!currentTracks) return;
-    (async () => {
-      await db.currentTracks
-        .where("path")
-        .equals(currentTracks[trackId].path)
-        .modify({
-          panelSize: {
-            width: ref.style.width,
-            height: "auto",
-          },
-        });
-    })();
+    const currentTracks = JSON.parse(localStorage.getItem("currentTracks")!);
+    currentTracks[trackId].panelSize = {
+      width: ref.style.width,
+      height: "auto",
+    };
+    localStorage.setItem("currentTracks", JSON.stringify(currentTracks));
   }
 
   function handleMove(d: { x: number; y: number }) {
     setPanelPosition({ x: d.x, y: d.y });
-    if (!currentTracks) return;
-    (async () => {
-      await db.currentTracks
-        .where("path")
-        .equals(currentTracks[trackId].path)
-        .modify({ panelPosition: { x: d.x, y: d.y } });
-    })();
+    const currentTracks = JSON.parse(localStorage.getItem("currentTracks")!);
+    currentTracks[trackId].panelPosition = { x: d.x, y: d.y };
+    localStorage.setItem("currentTracks", JSON.stringify(currentTracks));
   }
 
   async function handleClick() {
