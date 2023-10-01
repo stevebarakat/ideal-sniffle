@@ -7,6 +7,7 @@ import Loader from "./Loader";
 import SongInfo from "./SongInfo";
 import { TrackChannel } from "./Track";
 import Main from "./Main";
+import { defaultTrackData } from "~/assets/songs/defaultData";
 import { MixerMachineContext } from "@/context/MixerMachineContext";
 import { Destination, Transport as t } from "tone";
 import type { MixData } from "@prisma/client";
@@ -17,23 +18,21 @@ import { useEffect, useState } from "react";
 type Props = {
   mixData: MixData[];
   sourceSong: SourceSong;
+  currentTracks: SourceTrack;
 };
 
-export const Mixer = ({ mixData, sourceSong }: Props) => {
-  const currentTracks = useLiveQuery(
-    async () => await db.currentTracks.toArray()
-  );
-
-  console.log("sourceSong", sourceSong);
-
+export const Mixer = ({ mixData, sourceSong, currentTracks }: Props) => {
   const [tracks, setTracks] = useState(sourceSong.tracks);
 
   if (!sourceSong) window.location.reload();
   useEffect(() => {
     localStorage.setItem("sourceSong", JSON.stringify(sourceSong));
-    localStorage.setItem("currentTracks", JSON.stringify(currentTracks));
-    const getCurrentTracks = new Promise((resolve) => resolve(currentTracks));
-    getCurrentTracks.then((value) => {
+    localStorage.setItem(
+      "currentTracks",
+      JSON.stringify({ ...currentTracks, ...defaultTrackData })
+    );
+    const getcurrentTracks = new Promise((resolve) => resolve(currentTracks));
+    getcurrentTracks.then((value) => {
       if (!Array.isArray(value)) return;
       setTracks(value);
     });
@@ -78,6 +77,7 @@ export const Mixer = ({ mixData, sourceSong }: Props) => {
                 track={track}
                 trackId={i}
                 channels={channels}
+                currentTracks={currentTracks}
               />
             ))}
             <Main />

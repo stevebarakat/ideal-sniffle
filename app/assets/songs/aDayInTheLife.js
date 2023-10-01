@@ -13,21 +13,25 @@ export const aDayInTheLife = {
   tracks: [
     {
       id: uuid(),
+      songSlug: "a-day-in-the-life",
       name: "Bass/Drums",
       path: "https://ioxpcmpvgermtfqxwykx.supabase.co/storage/v1/object/public/songs/aDayInTheLife/bass-drums.mp3",
     },
     {
       id: uuid(),
+      songSlug: "a-day-in-the-life",
       name: "Instruments",
       path: "https://ioxpcmpvgermtfqxwykx.supabase.co/storage/v1/object/public/songs/aDayInTheLife/instruments.mp3",
     },
     {
       id: uuid(),
+      songSlug: "a-day-in-the-life",
       name: "Orchestra",
       path: "https://ioxpcmpvgermtfqxwykx.supabase.co/storage/v1/object/public/songs/aDayInTheLife/orchestra.mp3",
     },
     {
       id: uuid(),
+      songSlug: "a-day-in-the-life",
       name: "Vocals",
       path: "https://ioxpcmpvgermtfqxwykx.supabase.co/storage/v1/object/public/songs/aDayInTheLife/vox.mp3",
     },

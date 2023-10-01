@@ -16,8 +16,6 @@ function Fader({ trackId, channels, meters, volume, setVolume }: Props) {
 
   function saveTrackVolume(e: React.FormEvent<HTMLInputElement>): void {
     const value = parseFloat(e.currentTarget.value);
-    const scaled = dbToPercent(log(value));
-    channels[trackId].volume.value = scaled;
     setVolume(value);
     const currentTracks = JSON.parse(localStorage.getItem("currentTracks")!);
     currentTracks[trackId].volume = value;
@@ -26,7 +24,7 @@ function Fader({ trackId, channels, meters, volume, setVolume }: Props) {
 
   return (
     <div className="fader-wrap">
-      <div className="window">{`${volume?.toFixed(0)} dB`}</div>
+      <div className="window">{`${volume.toFixed(0)} dB`}</div>
       <div className="levels-wrap">
         <VuMeter meterValue={meterVal} height={150} width={12} />
       </div>
@@ -39,7 +37,12 @@ function Fader({ trackId, channels, meters, volume, setVolume }: Props) {
           max={12}
           step={0.1}
           value={volume}
-          onChange={(e) => setVolume(parseFloat(e.currentTarget.value))}
+          onChange={(e) => {
+            const value = parseFloat(e.currentTarget.value);
+            setVolume(value);
+            const scaled = dbToPercent(log(value));
+            channels[trackId].volume.value = scaled;
+          }}
           onPointerUp={saveTrackVolume}
         />
       </div>

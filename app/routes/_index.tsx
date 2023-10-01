@@ -7,13 +7,14 @@ import { prisma } from "~/utils/db.server";
 export const loader: LoaderFunction = async () => {
   const sourceSong = await prisma.sourceSong.findFirst();
   const currentTracks = await prisma.sourceTrack.findMany({
-    where: { id: sourceSong?.id },
+    where: { songSlug: "a-day-in-the-life" },
   });
-  return sourceSong;
+  console.log("currentTracks", currentTracks);
+  return { sourceSong, currentTracks };
 };
 
 function Index() {
-  const sourceSong = useLoaderData();
+  const { sourceSong, currentTracks } = useLoaderData();
   const fetcher = useFetcher();
   const namesQuery = fetcher.data;
 
@@ -21,7 +22,11 @@ function Index() {
 
   return (
     <MixerMachineContext.Provider>
-      <Mixer mixData={mixData} sourceSong={sourceSong} />
+      <Mixer
+        mixData={mixData}
+        sourceSong={sourceSong}
+        currentTracks={currentTracks}
+      />
     </MixerMachineContext.Provider>
   );
 }

@@ -10,6 +10,7 @@ import useVolumeAutomationData from "@/hooks/useVolumeAutomationData";
 import { ChannelButton } from "../Buttons";
 import { array } from "@/utils";
 import TrackPanel from "./TrackPanel";
+import { defaultTrackData } from "~/assets/songs/defaultData";
 import {
   Delay,
   Reverber,
@@ -27,11 +28,14 @@ type Props = {
   track: SourceTrack;
   trackId: number;
   channels: Channel[];
+  currentTracks: TrackSettings[];
 };
 
 function TrackChannel({ track, trackId, channels }: Props) {
   const localTracks = JSON.parse(localStorage.getItem("currentTracks")!);
-  const [volume, setVolume] = useState(() => localTracks[trackId].volume);
+  const [volume, setVolume] = useState(
+    () => localTracks[trackId].volume || -32
+  );
 
   useVolumeAutomationData({ trackId, channels, volume, setVolume });
 
@@ -48,9 +52,7 @@ function TrackChannel({ track, trackId, channels }: Props) {
     Array(channels.length).fill(new Meter({ channels: 2 }))
   );
 
-  const [currentTrackFx, setCurrentTrackFx] = useState(
-    Array(localTracks[trackId].fxNames.length).fill(new Volume())
-  );
+  const [currentTrackFx, setCurrentTrackFx] = useState<Fx>(new Volume());
 
   const [fxNames, setFxNames] = useState(
     currentTracks && currentTracks[trackId] && currentTracks[trackId].fxNames
@@ -82,23 +84,19 @@ function TrackChannel({ track, trackId, channels }: Props) {
     fxNames?.forEach((name, fxId) => {
       switch (name) {
         case "nofx":
-          currentTrackFx[fxId] = nofx;
-          setCurrentTrackFx(() => currentTrackFx);
+          setCurrentTrackFx(nofx);
           break;
 
         case "reverb":
-          currentTrackFx[fxId] = reverb;
-          setCurrentTrackFx(() => currentTrackFx);
+          setCurrentTrackFx(reverb);
           break;
 
         case "delay":
-          currentTrackFx[fxId] = delay;
-          setCurrentTrackFx(() => currentTrackFx);
+          setCurrentTrackFx(delay);
           break;
 
         case "pitchShift":
-          currentTrackFx[fxId] = pitchShift;
-          setCurrentTrackFx(() => currentTrackFx);
+          setCurrentTrackFx(pitchShift);
           break;
 
         default:
@@ -108,9 +106,7 @@ function TrackChannel({ track, trackId, channels }: Props) {
 
     channels[trackId]?.disconnect();
     channels[trackId]?.connect(meters.current[trackId].toDestination());
-    currentTrackFx?.forEach((ctf) => {
-      ctf && channels[trackId].chain(ctf, Destination);
-    });
+    currentTrackFx && channels[trackId]?.chain(currentTrackFx, Destination);
   });
 
   let currentFx: JSX.Element[] = [];
@@ -164,7 +160,7 @@ function TrackChannel({ track, trackId, channels }: Props) {
       setFxNames(spliced);
     } else {
       const currentTracks = JSON.parse(localStorage.getItem("currentTracks")!);
-      setFxNames([...currentTracks[trackId].fxNames, fxName].reverse());
+      setFxNames([...currentTracks[trackId]?.fxNames, fxName].reverse());
       currentTracks[trackId].fxNames = [
         ...currentTracks[trackId].fxNames,
         fxName,

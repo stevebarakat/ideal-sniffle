@@ -36,6 +36,7 @@ declare global {
 
   type SourceTrack = {
     id: string;
+    songSlug: string;
     name: string;
     path: string;
   };
