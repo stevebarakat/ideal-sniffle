@@ -15,14 +15,13 @@ type Props = {
 function Fader({ trackId, channels, meters }: Props) {
   const meterVal = useMeters([channels[trackId]], meters);
   const currentTracks = JSON.parse(localStorage.getItem("currentTracks")!);
-  const [volume, setVolume] = useState(
-    currentTracks && currentTracks[trackId] && currentTracks[trackId].volume
-  );
+  const [volume, setVolume] = useState(() => currentTracks[trackId].volume);
 
   function saveTrackVolume(e: React.FormEvent<HTMLInputElement>): void {
     const value = parseFloat(e.currentTarget.value);
     const scaled = dbToPercent(log(value));
     channels[trackId].volume.value = scaled;
+    setVolume(value);
     const currentTracks = JSON.parse(localStorage.getItem("currentTracks")!);
     currentTracks[trackId].volume = value;
     localStorage.setItem("currentTracks", JSON.stringify(currentTracks));
