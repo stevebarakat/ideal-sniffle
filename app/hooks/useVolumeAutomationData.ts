@@ -1,5 +1,5 @@
 import { MixerMachineContext } from "@/context/MixerMachineContext";
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useState } from "react";
 import { Draw, Transport as t } from "tone";
 import { roundFourth } from "@/utils";
 import { useLiveQuery } from "dexie-react-hooks";
@@ -13,9 +13,21 @@ type WriteProps = {
 };
 
 function useVolumeAutomationData({ trackId, channels }: Props) {
-  const value: number | boolean = MixerMachineContext.useSelector((state) => {
-    return state.context.currentTracks[trackId].volume;
-  });
+  const currentTracks = useLiveQuery(
+    async () => await db.currentTracks.toArray()
+  );
+  const [value, setValue] = useState(
+    currentTracks && currentTracks[trackId].volume
+  );
+
+  useEffect(() => {
+    const getCurrentTracks = new Promise((resolve) => resolve(currentTracks));
+    getCurrentTracks.then((value) => {
+      if (!Array.isArray(value)) return;
+      setValue(value[trackId].volume);
+    });
+  }, [currentTracks, trackId]);
+
   useWrite({ id: trackId, value });
   useRead({ trackId, channels });
   return null;
@@ -25,9 +37,6 @@ const data = new Map<number, object>();
 
 // !!! --- WRITE --- !!! //
 function useWrite({ id, value }: WriteProps) {
-  // const playbackMode = MixerMachineContext.useSelector(
-  //   (state) => state.context.currentTracks[id].volumeMode
-  // );
   const currentTracks = useLiveQuery(() => db.currentTracks.toArray());
   const playbackMode = currentTracks && currentTracks[id]?.volumeMode;
 
@@ -58,9 +67,6 @@ function useWrite({ id, value }: WriteProps) {
 // !!! --- READ --- !!! //
 function useRead({ trackId }: Props) {
   const { send } = MixerMachineContext.useActorRef();
-  // const playbackMode = MixerMachineContext.useSelector(
-  //   (state) => state.context.currentTracks[trackId].volumeMode
-  // );
 
   const currentTracks = useLiveQuery(() => db.currentTracks.toArray());
   const playbackMode = currentTracks && currentTracks[trackId]?.volumeMode;

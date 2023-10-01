@@ -1,43 +1,46 @@
 import { roxanne } from "@/assets/songs";
 import { defaultTrackData } from "@/assets/songs/defaultData";
-import { db } from "@/db";
 
-export async function setSourceSong() {
-  const sourceSong = await db.sourceSong
-    .where("id")
-    .equals("sourceSong")
-    .toArray();
+export function setSourceSong() {
+  const sourceSongString = window.localStorage.getItem("sourceSong");
+  const sourceSong = sourceSongString && JSON.parse(sourceSongString);
   if (!sourceSong) {
-    db.sourceSong.add({
-      ...roxanne,
-    });
+    localStorage.setItem("sourceSong", JSON.stringify(roxanne));
+    setCurrentMain();
     setCurrentTracks();
+    window.location.reload();
   }
 }
 
-export async function setCurrentMain() {
-  const currentMain = await db.currentMain
-    .where("id")
-    .equals("currentMain")
-    .toArray();
-
+function setCurrentMain() {
+  const currentMain = localStorage.getItem("currentMain");
   if (!currentMain) {
-    db.currentMain.add({
-      volume: -32,
-    });
+    localStorage.setItem(
+      "currentMain",
+      JSON.stringify({
+        volume: -32,
+      })
+    );
   }
 }
 
-async function setCurrentTracks() {
-  const currentTracks = db.currentTracks;
+function setCurrentTracks() {
+  const sourceSongString = window.localStorage.getItem("sourceSong");
+  const sourceSong = sourceSongString && JSON.parse(sourceSongString);
+  const currentTracksString = window.localStorage.getItem("currentTracks");
+  const currentTracks = currentTracksString && JSON.parse(currentTracksString);
+  // const sourceSong = localStorageGet("sourceSong") || roxanne;
+  // const currentTracks = localStorageGet("currentTracks");
+
   if (!currentTracks) {
-    roxanne.tracks.map((track: SourceTrack) =>
-      db.currentTracks.add({
+    const defaultCurrentTracks = sourceSong.tracks.map(
+      (track: SourceTrack) => ({
         id: track.id,
         name: track.name,
         path: track.path,
         ...defaultTrackData,
       })
     );
+    localStorage.setItem("currentTracks", JSON.stringify(defaultCurrentTracks));
   }
 }

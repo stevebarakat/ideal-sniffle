@@ -1,5 +1,7 @@
 import { Toggle } from "@/components/Buttons";
 import { MixerMachineContext } from "@/context/MixerMachineContext";
+import { useLiveQuery } from "dexie-react-hooks";
+import { db } from "~/db";
 
 type Props = {
   trackId: number;
@@ -7,11 +9,11 @@ type Props = {
 
 function Solo({ trackId }: Props) {
   const { send } = MixerMachineContext.useActorRef();
-  const soloMute = MixerMachineContext.useSelector((state) => {
-    return state.context.currentTracks[trackId].soloMute;
-  });
+  const currentTracks = useLiveQuery(() => db.currentTracks.toArray());
+  const soloMute = currentTracks && currentTracks[trackId].soloMute;
 
   function toggleSolo(e: React.FormEvent<HTMLInputElement>): void {
+    if (!soloMute) return;
     const checked = e.currentTarget.checked;
     send({
       type: "SET_TRACK_SOLOMUTE",
@@ -26,7 +28,7 @@ function Solo({ trackId }: Props) {
   return (
     <Toggle
       id={`trackSolo${trackId}`}
-      checked={soloMute.solo}
+      checked={soloMute?.solo || false}
       onChange={toggleSolo}
     >
       S

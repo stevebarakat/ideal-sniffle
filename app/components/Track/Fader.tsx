@@ -1,7 +1,10 @@
-import { MixerMachineContext } from "@/context/MixerMachineContext";
 import VuMeter from "../VuMeter";
 import useMeters from "@/hooks/useMeters";
-import { Meter } from "tone";
+import type { Meter } from "tone";
+import { useLiveQuery } from "dexie-react-hooks";
+import { db } from "~/db";
+import { useEffect, useState } from "react";
+import { dbToPercent, log } from "~/utils";
 
 type Props = {
   trackId: number;
@@ -11,22 +14,32 @@ type Props = {
 
 function Fader({ trackId, channels, meters }: Props) {
   const meterVal = useMeters([channels[trackId]], meters);
-  const { send } = MixerMachineContext.useActorRef();
-  const { volume } = MixerMachineContext.useSelector(
-    (state) => state.context.currentTracks[trackId]
+  const currentTracks = JSON.parse(localStorage.getItem("currentTracks")!);
+  const [volume, setVolume] = useState(
+    currentTracks && currentTracks[trackId].volume
   );
 
-  function setVolume(e: React.FormEvent<HTMLInputElement>): void {
-    send({
-      type: "SET_TRACK_VOLUME",
-      value: parseFloat(e.currentTarget.value),
-      trackId,
+  useEffect(() => {
+    const getCurrentTracks = new Promise((resolve) => resolve(currentTracks));
+    getCurrentTracks.then((value) => {
+      if (!Array.isArray(value)) return;
+      setVolume(value[trackId].volume);
     });
+  }, [currentTracks, trackId]);
+
+  function setTrackVolume(e: React.FormEvent<HTMLInputElement>): void {
+    const value = parseFloat(e.currentTarget.value);
+    const scaled = dbToPercent(log(value));
+    channels[trackId].volume.value = scaled;
+    setVolume(value);
+    const currentTracks = JSON.parse(localStorage.getItem("currentTracks")!);
+    currentTracks[trackId].volume = value;
+    localStorage.setItem("currentTracks", JSON.stringify(currentTracks));
   }
 
   return (
     <div className="fader-wrap">
-      {/* <div className="window">{`${volume.toFixed(0)} dB`}</div> */}
+      <div className="window">{`${volume?.toFixed(0)} dB`}</div>
       <div className="levels-wrap">
         <VuMeter meterValue={meterVal} height={150} width={12} />
       </div>
@@ -39,7 +52,7 @@ function Fader({ trackId, channels, meters }: Props) {
           max={12}
           step={0.1}
           value={volume}
-          onChange={setVolume}
+          onChange={setTrackVolume}
         />
       </div>
     </div>

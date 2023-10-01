@@ -1,6 +1,8 @@
 import { MixerMachineContext } from "@/context/MixerMachineContext";
 import usePanAutomationData from "@/hooks/usePanAutomationData";
 import PlaybackMode from "../PlaybackMode";
+import { useLiveQuery } from "dexie-react-hooks";
+import { db } from "~/db";
 
 type Props = {
   trackId: number;
@@ -9,9 +11,8 @@ type Props = {
 
 function Pan({ trackId, channels }: Props) {
   const { send } = MixerMachineContext.useActorRef();
-  const pan = MixerMachineContext.useSelector((state) => {
-    return state.context.currentTracks[trackId].pan;
-  });
+  const currentTracks = useLiveQuery(() => db.currentTracks.toArray());
+  const pan = currentTracks && currentTracks[trackId].pan;
 
   usePanAutomationData({ trackId, channels });
 

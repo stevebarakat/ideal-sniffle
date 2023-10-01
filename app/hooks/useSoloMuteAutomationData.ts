@@ -1,5 +1,5 @@
 import { MixerMachineContext } from "@/context/MixerMachineContext";
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useState } from "react";
 import { Transport as t } from "tone";
 import { roundFourth } from "@/utils";
 import { useLiveQuery } from "dexie-react-hooks";
@@ -13,10 +13,21 @@ type WriteProps = {
 };
 
 function useSoloMuteAutomationData({ trackId, channels }: Props) {
-  const value: { solo: boolean; mute: boolean } =
-    MixerMachineContext.useSelector(
-      (state) => state.context.currentTracks[trackId].soloMute
-    );
+  const currentTracks = useLiveQuery(
+    async () => await db.currentTracks.toArray()
+  );
+  const [value, setValue] = useState(
+    currentTracks && currentTracks[trackId].soloMute
+  );
+
+  useEffect(() => {
+    const getCurrentTracks = new Promise((resolve) => resolve(currentTracks));
+    getCurrentTracks.then((value) => {
+      if (!Array.isArray(value)) return;
+      setValue(value[trackId].soloMute);
+    });
+  }, [currentTracks, trackId]);
+
   useWrite({ id: trackId, value });
   useRead({ trackId, channels });
   return null;
@@ -30,9 +41,8 @@ const data = new Map<
 // !!! --- WRITE --- !!! //
 
 function useWrite({ id, value }: WriteProps) {
-  const playbackMode = MixerMachineContext.useSelector(
-    (state) => state.context.currentTracks[id].soloMuteMode
-  );
+  const currentTracks = useLiveQuery(() => db.currentTracks.toArray());
+  const playbackMode = currentTracks && currentTracks[id]?.soloMuteMode;
 
   useEffect(() => {
     if (playbackMode !== "write") return;
@@ -62,9 +72,8 @@ function useWrite({ id, value }: WriteProps) {
 
 function useRead({ trackId }: Props) {
   const { send } = MixerMachineContext.useActorRef();
-  const playbackMode = MixerMachineContext.useSelector(
-    (state) => state.context.currentTracks[trackId].soloMuteMode
-  );
+  const currentTracks = useLiveQuery(() => db.currentTracks.toArray());
+  const playbackMode = currentTracks && currentTracks[trackId]?.volumeMode;
 
   const setParam = useCallback(
     (

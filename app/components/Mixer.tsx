@@ -14,6 +14,7 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "~/db";
 import { roxanne } from "~/assets/songs";
 import { useEffect, useState } from "react";
+import { setSourceSong as sss } from "~/utils/init";
 
 type Props = {
   mixData: MixData[];
@@ -29,6 +30,7 @@ export const Mixer = ({ mixData }: Props) => {
   const [sourceSong, setSourceSong] = useState(defaultSourceSong);
 
   useEffect(() => {
+    sss();
     const getSourceSong = new Promise((resolve) => resolve(sourceSong));
     getSourceSong.then((value) => {
       if (!Array.isArray(value)) return;
@@ -52,26 +54,26 @@ export const Mixer = ({ mixData }: Props) => {
 
   const { channels, isLoading } = useTracks({ tracks });
 
-  (function loadSettings() {
-    t.bpm.value = sourceSong.bpm;
-    // const volume = currentMain.volume;
-    // const scaled = dbToPercent(log(volume));
-    // Destination.volume.value = scaled;
+  // (function loadSettings() {
+  //   // t.bpm.value = sourceSong.bpm;
+  //   // const volume = currentMain.volume;
+  //   // const scaled = dbToPercent(log(volume));
+  //   // Destination.volume.value = scaled;
 
-    currentTracks?.forEach((currentTrack: TrackSettings, trackId: number) => {
-      const value = currentTrack.volume;
-      const scaled = dbToPercent(log(value));
+  //   currentTracks?.forEach((currentTrack: TrackSettings, trackId: number) => {
+  //     const value = currentTrack.volume;
+  //     const scaled = dbToPercent(log(value));
 
-      if (channels[trackId]) {
-        channels[trackId].set({
-          volume: scaled,
-          pan: currentTrack.pan,
-          solo: currentTrack.soloMute.solo,
-          mute: currentTrack.soloMute.mute,
-        });
-      }
-    });
-  })();
+  //     if (channels[trackId]) {
+  //       channels[trackId].set({
+  //         volume: scaled,
+  //         pan: currentTrack.pan,
+  //         solo: currentTrack.soloMute.solo,
+  //         mute: currentTrack.soloMute.mute,
+  //       });
+  //     }
+  //   });
+  // })();
 
   if (isLoading) {
     return <Loader song={sourceSong} />;
