@@ -12,45 +12,32 @@ import { Destination, Transport as t } from "tone";
 import type { MixData } from "@prisma/client";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "~/db";
-import { roxanne } from "~/assets/songs";
 import { useEffect, useState } from "react";
-import { setSourceSong as sss } from "~/utils/init";
 
 type Props = {
   mixData: MixData[];
+  sourceSong: SourceSong;
 };
 
-export const Mixer = ({ mixData }: Props) => {
-  const defaultSourceSong =
-    useLiveQuery(async () => {
-      const temp = await db.sourceSong.toArray();
-      return temp[0];
-    }) || roxanne;
-
-  const [sourceSong, setSourceSong] = useState(defaultSourceSong);
-
-  useEffect(() => {
-    sss();
-    const getSourceSong = new Promise((resolve) => resolve(sourceSong));
-    getSourceSong.then((value) => {
-      if (!Array.isArray(value)) return;
-      setSourceSong(value[0]);
-    });
-  }, [sourceSong]);
-
+export const Mixer = ({ mixData, sourceSong }: Props) => {
   const currentTracks = useLiveQuery(
     async () => await db.currentTracks.toArray()
   );
 
+  console.log("sourceSong", sourceSong);
+
   const [tracks, setTracks] = useState(sourceSong.tracks);
 
+  if (!sourceSong) window.location.reload();
   useEffect(() => {
+    localStorage.setItem("sourceSong", JSON.stringify(sourceSong));
+    localStorage.setItem("currentTracks", JSON.stringify(currentTracks));
     const getCurrentTracks = new Promise((resolve) => resolve(currentTracks));
     getCurrentTracks.then((value) => {
       if (!Array.isArray(value)) return;
       setTracks(value);
     });
-  }, [currentTracks]);
+  }, [currentTracks, sourceSong]);
 
   const { channels, isLoading } = useTracks({ tracks });
 

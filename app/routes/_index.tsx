@@ -1,23 +1,27 @@
 import { Mixer } from "~/components/Mixer";
+import type { LoaderFunction } from "@remix-run/node";
 import { MixerMachineContext } from "@/context/MixerMachineContext";
-import { useFetcher } from "@remix-run/react";
-import { useEffect } from "react";
+import { useFetcher, useLoaderData } from "@remix-run/react";
+import { prisma } from "~/utils/db.server";
+
+export const loader: LoaderFunction = async () => {
+  const sourceSong = await prisma.sourceSong.findFirst();
+  const currentTracks = await prisma.sourceTrack.findMany({
+    where: { id: sourceSong?.id },
+  });
+  return sourceSong;
+};
 
 function Index() {
+  const sourceSong = useLoaderData();
   const fetcher = useFetcher();
   const namesQuery = fetcher.data;
-  // resource route for loading server data
-  useEffect(() => {
-    if (fetcher.type === "init") {
-      fetcher.load("/mixName/");
-    }
-  }, [fetcher]);
 
   const mixData = namesQuery?.mixData;
 
   return (
     <MixerMachineContext.Provider>
-      <Mixer mixData={mixData} />
+      <Mixer mixData={mixData} sourceSong={sourceSong} />
     </MixerMachineContext.Provider>
   );
 }

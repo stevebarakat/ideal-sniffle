@@ -106,9 +106,9 @@ function TrackChannel({ track, trackId, channels }: Props) {
       }
     }, []);
 
-    channels[trackId].disconnect();
-    channels[trackId].connect(meters.current[trackId].toDestination());
-    currentTrackFx.forEach((ctf) => {
+    channels[trackId]?.disconnect();
+    channels[trackId]?.connect(meters.current[trackId].toDestination());
+    currentTrackFx?.forEach((ctf) => {
       ctf && channels[trackId].chain(ctf, Destination);
     });
   });
