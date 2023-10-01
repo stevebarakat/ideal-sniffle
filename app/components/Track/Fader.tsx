@@ -1,21 +1,18 @@
 import VuMeter from "../VuMeter";
 import useMeters from "@/hooks/useMeters";
 import type { Meter } from "tone";
-import { useLiveQuery } from "dexie-react-hooks";
-import { db } from "~/db";
-import { useEffect, useState } from "react";
 import { dbToPercent, log } from "~/utils";
 
 type Props = {
   trackId: number;
   channels: Channel[];
   meters: React.MutableRefObject<Meter[]>;
+  volume: number;
+  setVolume: (arg: number) => void;
 };
 
-function Fader({ trackId, channels, meters }: Props) {
+function Fader({ trackId, channels, meters, volume, setVolume }: Props) {
   const meterVal = useMeters([channels[trackId]], meters);
-  const currentTracks = JSON.parse(localStorage.getItem("currentTracks")!);
-  const [volume, setVolume] = useState(() => currentTracks[trackId].volume);
 
   function saveTrackVolume(e: React.FormEvent<HTMLInputElement>): void {
     const value = parseFloat(e.currentTarget.value);

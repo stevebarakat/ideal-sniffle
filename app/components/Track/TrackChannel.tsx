@@ -30,7 +30,10 @@ type Props = {
 };
 
 function TrackChannel({ track, trackId, channels }: Props) {
-  useVolumeAutomationData({ trackId, channels });
+  const localTracks = JSON.parse(localStorage.getItem("currentTracks")!);
+  const [volume, setVolume] = useState(() => localTracks[trackId].volume);
+
+  useVolumeAutomationData({ trackId, channels, volume, setVolume });
 
   const fx = {
     nofx: useNoFx(),
@@ -236,7 +239,13 @@ function TrackChannel({ track, trackId, channels }: Props) {
 
       <div className="channel">
         <Pan trackId={trackId} channels={channels} />
-        <Fader trackId={trackId} channels={channels} meters={meters} />
+        <Fader
+          trackId={trackId}
+          channels={channels}
+          meters={meters}
+          volume={volume}
+          setVolume={setVolume}
+        />
         <SoloMute trackId={trackId} channels={channels} />
         <ChannelLabel channelName={track.name} />
       </div>
