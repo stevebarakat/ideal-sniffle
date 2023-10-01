@@ -14,3 +14,25 @@ model MixData {
   name String
   data String
 }
+
+model SourceSong {
+  id       String        @id @default(cuid())
+  slug     String
+  title    String
+  artist   String
+  year     String
+  studio   String
+  location String
+  bpm      Int
+  start    Int
+  end      Int
+  tracks   SourceTrack[]
+}
+
+model SourceTrack {
+  id           String      @id @default(cuid())
+  name         String
+  path         String
+  SourceSong   SourceSong? @relation(fields: [sourceSongId], references: [id])
+  sourceSongId String?
+}

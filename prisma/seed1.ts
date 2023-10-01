@@ -1,12 +1,5 @@
-import type { Song } from "@prisma/client";
 import { PrismaClient } from "@prisma/client";
 const db = new PrismaClient();
-
-export type { Song } from "@prisma/client";
-
-export async function getSongWithTracks(id: Song["id"]) {
-  return db.song.findUnique({ where: { id }, include: { tracks: true } });
-}
 
 // prisma/seed.ts
 export async function seed1() {
