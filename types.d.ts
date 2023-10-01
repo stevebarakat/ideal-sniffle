@@ -44,6 +44,11 @@ declare global {
     volume: number;
   };
 
+  type SoloMute = {
+    solo: boolean;
+    mute: boolean;
+  };
+
   type TrackSettings = {
     id: string;
     name: string;

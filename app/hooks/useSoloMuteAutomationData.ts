@@ -1,35 +1,43 @@
-import { MixerMachineContext } from "@/context/MixerMachineContext";
-import { useEffect, useCallback, useState } from "react";
+import { useEffect, useCallback } from "react";
 import { Transport as t } from "tone";
 import { roundFourth } from "@/utils";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "@/db";
 
-type Props = { trackId: number; channels: Channel[] };
+type Props = {
+  trackId: number;
+  channels: Channel[];
+  soloMute: SoloMute;
+  setSoloMute: (arg: SoloMute) => void;
+};
+
+type ReadProps = { trackId: number; setSoloMute: (arg: SoloMute) => void };
 
 type WriteProps = {
   id: number;
-  value: { solo: boolean; mute: boolean };
+  value: SoloMute;
 };
 
-function useSoloMuteAutomationData({ trackId, channels }: Props) {
+function useSoloMuteAutomationData({
+  trackId,
+  channels,
+  soloMute,
+  setSoloMute,
+}: Props) {
   const currentTracks = useLiveQuery(
     async () => await db.currentTracks.toArray()
-  );
-  const [value, setValue] = useState(
-    currentTracks && currentTracks[trackId].soloMute
   );
 
   useEffect(() => {
     const getCurrentTracks = new Promise((resolve) => resolve(currentTracks));
     getCurrentTracks.then((value) => {
       if (!Array.isArray(value)) return;
-      setValue(value[trackId].soloMute);
+      setSoloMute(value[trackId].soloMute);
     });
-  }, [currentTracks, trackId]);
+  }, [currentTracks, trackId, setSoloMute]);
 
-  useWrite({ id: trackId, value });
-  useRead({ trackId, channels });
+  useWrite({ id: trackId, value: soloMute });
+  useRead({ trackId, setSoloMute });
   return null;
 }
 
@@ -70,8 +78,7 @@ function useWrite({ id, value }: WriteProps) {
 
 // !!! --- READ --- !!! //
 
-function useRead({ trackId }: Props) {
-  const { send } = MixerMachineContext.useActorRef();
+function useRead({ trackId, setSoloMute }: ReadProps) {
   const currentTracks = useLiveQuery(() => db.currentTracks.toArray());
   const playbackMode = currentTracks && currentTracks[trackId]?.volumeMode;
 
@@ -80,20 +87,16 @@ function useRead({ trackId }: Props) {
       trackId: number,
       data: {
         time: number;
-        value: number;
+        value: SoloMute;
       }
     ) => {
       t.schedule(() => {
         if (playbackMode !== "read") return;
 
-        send({
-          type: "SET_TRACK_SOLOMUTE",
-          trackId,
-          value: data.value,
-        });
+        setSoloMute(data.value);
       }, data.time);
     },
-    [playbackMode, send]
+    [playbackMode, setSoloMute]
   );
 
   let queryData = [];

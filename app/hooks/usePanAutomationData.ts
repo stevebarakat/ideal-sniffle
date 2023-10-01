@@ -1,5 +1,5 @@
 // import { MixerMachineContext } from "@/context/MixerMachineContext";
-import { useEffect, useCallback, useState } from "react";
+import { useEffect, useCallback } from "react";
 import { Transport as t } from "tone";
 import { roundFourth } from "@/utils";
 import { useLiveQuery } from "dexie-react-hooks";
@@ -82,7 +82,6 @@ function useRead({ trackId, setPan }: ReadProps) {
     ) => {
       t.schedule(() => {
         if (playbackMode !== "read") return;
-        console.log("READING!");
 
         setPan(data.value);
       }, data.time);
