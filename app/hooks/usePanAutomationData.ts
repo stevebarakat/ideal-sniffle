@@ -1,35 +1,39 @@
-import { MixerMachineContext } from "@/context/MixerMachineContext";
+// import { MixerMachineContext } from "@/context/MixerMachineContext";
 import { useEffect, useCallback, useState } from "react";
 import { Transport as t } from "tone";
 import { roundFourth } from "@/utils";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "@/db";
 
-type Props = { trackId: number; channels: Channel[] };
+type Props = {
+  trackId: number;
+  channels: Channel[];
+  pan: number;
+  setPan: (arg: number) => void;
+};
+
+type ReadProps = { trackId: number; setPan: (arg: number) => void };
 
 type WriteProps = {
   id: number;
   value: number | string | boolean;
 };
 
-function usePanAutomationData({ trackId, channels }: Props) {
+function usePanAutomationData({ trackId, channels, pan, setPan }: Props) {
   const currentTracks = useLiveQuery(
     async () => await db.currentTracks.toArray()
-  );
-  const [value, setValue] = useState(
-    currentTracks && currentTracks[trackId].pan
   );
 
   useEffect(() => {
     const getCurrentTracks = new Promise((resolve) => resolve(currentTracks));
     getCurrentTracks.then((value) => {
       if (!Array.isArray(value)) return;
-      setValue(value[trackId].pan);
+      setPan(value[trackId].pan);
     });
-  }, [currentTracks, trackId]);
+  }, [currentTracks, trackId, setPan]);
 
-  useWrite({ id: trackId, value });
-  useRead({ trackId, channels });
+  useWrite({ id: trackId, value: pan });
+  useRead({ trackId, setPan });
   return null;
 }
 const data = new Map<number, object>();
@@ -64,9 +68,7 @@ function useWrite({ id, value }: WriteProps) {
 }
 
 // !!! --- READ --- !!! //
-
-function useRead({ trackId }: Props) {
-  const { send } = MixerMachineContext.useActorRef();
+function useRead({ trackId, setPan }: ReadProps) {
   const currentTracks = useLiveQuery(() => db.currentTracks.toArray());
   const playbackMode = currentTracks && currentTracks[trackId].panMode;
 
@@ -80,15 +82,12 @@ function useRead({ trackId }: Props) {
     ) => {
       t.schedule(() => {
         if (playbackMode !== "read") return;
+        console.log("READING!");
 
-        send({
-          type: "SET_TRACK_PAN",
-          trackId,
-          value: data.value,
-        });
+        setPan(data.value);
       }, data.time);
     },
-    [playbackMode, send]
+    [playbackMode, setPan]
   );
 
   let queryData = [];

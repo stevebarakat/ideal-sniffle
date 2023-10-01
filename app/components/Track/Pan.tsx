@@ -1,7 +1,5 @@
 import usePanAutomationData from "@/hooks/usePanAutomationData";
 import PlaybackMode from "../PlaybackMode";
-import { useLiveQuery } from "dexie-react-hooks";
-import { db } from "~/db";
 import { useState } from "react";
 
 type Props = {
@@ -13,7 +11,7 @@ function Pan({ trackId, channels }: Props) {
   const localTracks = JSON.parse(localStorage.getItem("currentTracks")!);
   const [pan, setPan] = useState(() => localTracks[trackId].pan);
 
-  usePanAutomationData({ trackId, channels });
+  usePanAutomationData({ trackId, channels, pan, setPan });
 
   function saveTrackPan(e: React.FormEvent<HTMLInputElement>): void {
     const value = parseFloat(e.currentTarget.value);
