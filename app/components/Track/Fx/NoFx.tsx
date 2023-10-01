@@ -1,4 +1,4 @@
-import { Volume } from "tone";
+import type { Volume } from "tone";
 
 type Props = {
   nofx?: Volume | null;

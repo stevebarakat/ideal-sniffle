@@ -1,6 +1,6 @@
 import Transport from "./Transport";
 import { log, dbToPercent } from "../utils";
-// import SongSelect from "./SongSelect";
+import SongSelect from "./SongSelect";
 import ImportExport from "./ImportExport.client";
 import useTracks from "@/hooks/useTracks";
 import Loader from "./Loader";
@@ -97,7 +97,7 @@ export const Mixer = ({ mixData }: Props) => {
           </div>
           <Transport song={sourceSong} />
         </div>
-        {/* <SongSelect /> */}
+        <SongSelect />
       </>
     );
   }

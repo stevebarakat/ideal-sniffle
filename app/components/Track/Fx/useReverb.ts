@@ -7,7 +7,6 @@ export default function useReverb(options?: Options): Reverb {
   const reverb = useRef<Reverb | null>(null);
 
   useEffect(() => {
-    // reverb.current = new Reverb(options).toDestination();
     reverb.current = new Reverb(options);
 
     return () => {

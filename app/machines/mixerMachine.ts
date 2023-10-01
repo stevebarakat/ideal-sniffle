@@ -242,23 +242,14 @@ export const mixerMachine = createMachine(
         });
       }),
 
-      loadSong: assign(async (context, { value }: any): any => {
-        await db.sourceSong.put({
-          id: "sourceSong",
-          ...value,
-        });
+      loadSong: assign((context, { value }: any): any => {
         const currentTracks = value.tracks.map((track: TrackSettings) => ({
           id: crypto.randomUUID(),
           name: track.name,
           path: track.path,
           ...defaultTrackData,
         }));
-        context.sourceSong = sourceSong;
-        context.currentTracks = currentTracks;
-        await db.currentTracks.put({
-          id: "currentTracks",
-          ...currentTracks,
-        });
+        localStorage.setItem("currentTracks", JSON.stringify(currentTracks));
         window.location.reload();
       }),
 
