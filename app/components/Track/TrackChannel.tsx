@@ -10,7 +10,6 @@ import useVolumeAutomationData from "@/hooks/useVolumeAutomationData";
 import { ChannelButton } from "../Buttons";
 import { array } from "@/utils";
 import TrackPanel from "./TrackPanel";
-import { defaultTrackData } from "~/assets/songs/defaultData";
 import {
   Delay,
   Reverber,
@@ -28,14 +27,11 @@ type Props = {
   track: SourceTrack;
   trackId: number;
   channels: Channel[];
-  currentTracks: TrackSettings[];
 };
 
 function TrackChannel({ track, trackId, channels }: Props) {
   const localTracks = JSON.parse(localStorage.getItem("currentTracks")!);
-  const [volume, setVolume] = useState(
-    () => localTracks[trackId].volume || -32
-  );
+  const [volume, setVolume] = useState(() => localTracks[trackId].volume);
 
   useVolumeAutomationData({ trackId, channels, volume, setVolume });
 
@@ -102,11 +98,11 @@ function TrackChannel({ track, trackId, channels }: Props) {
         default:
           break;
       }
-    }, []);
+    });
 
-    channels[trackId]?.disconnect();
-    channels[trackId]?.connect(meters.current[trackId].toDestination());
-    currentTrackFx && channels[trackId]?.chain(currentTrackFx, Destination);
+    channels[trackId].disconnect();
+    channels[trackId].connect(meters.current[trackId].toDestination());
+    currentTrackFx && channels[trackId].chain(currentTrackFx, Destination);
   });
 
   let currentFx: JSX.Element[] = [];

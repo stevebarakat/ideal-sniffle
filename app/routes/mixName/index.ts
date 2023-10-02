@@ -3,7 +3,7 @@ import { json } from "@remix-run/node";
 import { prisma } from "~/utils/db.server";
 
 export const loader: LoaderFunction = async ({ params: { slug } }) => {
-  // console.log("slug", slug);
+  console.log("slug", slug);
   const mixData = await prisma.mixData.findMany({
     orderBy: { name: "asc" },
   });

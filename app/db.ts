@@ -1,7 +1,5 @@
 import type { Table } from "dexie";
 import Dexie from "dexie";
-import { roxanne } from "./assets/songs";
-import { defaultTrackData } from "./assets/songs/defaultData";
 
 type VolumeData = {
   id?: string;
@@ -66,48 +64,48 @@ export class DexieDb extends Dexie {
 
 export const db = new DexieDb();
 
-// POPULATE DB WITH DEFAULT DATA
-db.on("ready", function (db) {
-  db.sourceSong.count(function (count: number) {
-    if (count > 0) {
-      return console.log(`Already populated`);
-    } else {
-      console.log("No Source Song set. Populating with default data.");
+// // POPULATE DB WITH DEFAULT DATA
+// db.on("ready", function (db) {
+//   db.sourceSong.count(function (count: number) {
+//     if (count > 0) {
+//       return console.log(`Already populated`);
+//     } else {
+//       console.log("No Source Song set. Populating with default data.");
 
-      const data = [{ id: "sourceSong", data: roxanne }];
+//       const data = [{ id: "sourceSong", data: roxanne }];
 
-      return db.sourceSong.bulkAdd(data);
-    }
-  });
-});
+//       return db.sourceSong.bulkAdd(data);
+//     }
+//   });
+// });
 
-db.on("ready", function (db) {
-  db.currentMain.count(function (count: number) {
-    if (count > 0) {
-      return console.log(`Already populated`);
-    } else {
-      console.log("Current Main set. Populating with default data.");
+// db.on("ready", function (db) {
+//   db.currentMain.count(function (count: number) {
+//     if (count > 0) {
+//       return console.log(`Already populated`);
+//     } else {
+//       console.log("Current Main set. Populating with default data.");
 
-      const data = [{ id: "currentMain", data: { volume: -32 } }];
+//       const data = [{ id: "currentMain", data: { volume: -32 } }];
 
-      return db.currentMain.bulkAdd(data);
-    }
-  });
-});
+//       return db.currentMain.bulkAdd(data);
+//     }
+//   });
+// });
 
-db.on("ready", function (db) {
-  db.currentTracks.count(function (count: number) {
-    if (count > 0) {
-      return console.log(`Already populated`);
-    } else {
-      console.log("CurrentTracks not set. Populating with default data.");
+// db.on("ready", function (db) {
+//   db.currentTracks.count(function (count: number) {
+//     if (count > 0) {
+//       return console.log(`Already populated`);
+//     } else {
+//       console.log("CurrentTracks not set. Populating with default data.");
 
-      const data = roxanne.tracks.map((track: SourceTrack) => ({
-        name: track.name,
-        path: track.path,
-        ...defaultTrackData,
-      }));
-      return db.currentTracks.bulkAdd(data);
-    }
-  });
-});
+//       const data = roxanne.tracks.map((track: SourceTrack) => ({
+//         name: track.name,
+//         path: track.path,
+//         ...defaultTrackData,
+//       }));
+//       return db.currentTracks.bulkAdd(data);
+//     }
+//   });
+// });

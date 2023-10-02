@@ -1,30 +1,48 @@
 import { Mixer } from "~/components/Mixer";
-import type { LoaderFunction } from "@remix-run/node";
+import { type LoaderFunction } from "@remix-run/node";
+import { defaultTrackData } from "~/assets/songs/defaultData";
 import { MixerMachineContext } from "@/context/MixerMachineContext";
 import { useFetcher, useLoaderData } from "@remix-run/react";
 import { prisma } from "~/utils/db.server";
+import { useEffect } from "react";
 
 export const loader: LoaderFunction = async () => {
-  const sourceSong = await prisma.sourceSong.findFirst();
-  const currentTracks = await prisma.sourceTrack.findMany({
-    where: { songSlug: "a-day-in-the-life" },
+  const mixData = await prisma.mixData.findMany({
+    orderBy: { name: "asc" },
   });
-  console.log("currentTracks", currentTracks);
-  return { sourceSong, currentTracks };
+
+  console.log("mixData", mixData);
+  return mixData;
 };
 
 function Index() {
-  const { sourceSong, currentTracks } = useLoaderData();
+  const mixData = useLoaderData();
   const fetcher = useFetcher();
-  const namesQuery = fetcher.data;
 
-  const mixData = namesQuery?.mixData;
+  // resource route for loading server data
+  useEffect(() => {
+    if (fetcher.type === "init") {
+      fetcher.load("/mixName/");
+    }
+  }, [fetcher]);
+
+  const sourceSong = JSON.parse(mixData[0].data).data.data[0].rows[0].data;
+  const sourceTracks = JSON.parse(mixData[0].data).data.data[2].rows;
+  const currentMain = JSON.parse(mixData[0].data).data.data[1].rows[0].data;
+  const currentTracks = sourceTracks.map((track: TrackSettings) => ({
+    ...track,
+    ...defaultTrackData,
+    songSlug: sourceSong.slug,
+  }));
+
+  console.log("mixData", mixData);
 
   return (
     <MixerMachineContext.Provider>
       <Mixer
         mixData={mixData}
         sourceSong={sourceSong}
+        currentMain={currentMain}
         currentTracks={currentTracks}
       />
     </MixerMachineContext.Provider>
