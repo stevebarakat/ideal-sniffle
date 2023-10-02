@@ -1,6 +1,6 @@
 import { useEffect, useCallback } from "react";
 import { Transport as t } from "tone";
-import { roundFourth } from "@/utils";
+import { dbToPercent, log, roundFourth } from "@/utils";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "@/db";
 
@@ -11,7 +11,11 @@ type Props = {
   setVolume: (arg: number) => void;
 };
 
-type ReadProps = { trackId: number; setVolume: (arg: number) => void };
+type ReadProps = {
+  trackId: number;
+  channels: Channel[];
+  setVolume: (arg: number) => void;
+};
 
 type WriteProps = {
   id: number;
@@ -25,7 +29,7 @@ function useVolumeAutomationData({
   setVolume,
 }: Props) {
   useWrite({ id: trackId, value: volume });
-  useRead({ trackId, setVolume });
+  useRead({ trackId, channels, setVolume });
 
   return null;
 }
@@ -62,7 +66,7 @@ function useWrite({ id, value }: WriteProps) {
 }
 
 // !!! --- READ --- !!! //
-function useRead({ trackId, setVolume }: ReadProps) {
+function useRead({ trackId, channels, setVolume }: ReadProps) {
   const currentTracks = useLiveQuery(() => db.currentTracks.toArray());
   const playbackMode = currentTracks && currentTracks[trackId].volumeMode;
 
@@ -76,12 +80,14 @@ function useRead({ trackId, setVolume }: ReadProps) {
     ) => {
       t.schedule(() => {
         if (playbackMode !== "read") return;
-        console.log("READING!");
+
+        const scaled = dbToPercent(log(data.value));
+        channels[trackId].volume.value = scaled;
 
         setVolume(data.value);
       }, data.time);
     },
-    [playbackMode, setVolume]
+    [playbackMode, setVolume, channels]
   );
 
   let queryData = [];

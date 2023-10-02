@@ -14,12 +14,16 @@ type Props = {
 function Fader({ trackId, channels, meters, volume, setVolume }: Props) {
   const meterVal = useMeters([channels[trackId]], meters);
 
-  function saveTrackVolume(e: React.FormEvent<HTMLInputElement>): void {
+  function setTrackVolume(e: React.FormEvent<HTMLInputElement>): void {
     const value = parseFloat(e.currentTarget.value);
     const scaled = dbToPercent(log(value));
     channels[trackId].volume.value = scaled;
     setVolume(value);
+  }
+
+  function saveTrackVolume(e: React.FormEvent<HTMLInputElement>): void {
     const currentTracks = JSON.parse(localStorage.getItem("currentTracks")!);
+    const value = parseFloat(e.currentTarget.value);
     currentTracks[trackId].volume = value;
     localStorage.setItem("currentTracks", JSON.stringify(currentTracks));
   }
@@ -39,7 +43,7 @@ function Fader({ trackId, channels, meters, volume, setVolume }: Props) {
           max={12}
           step={0.1}
           value={volume}
-          onChange={(e) => setVolume(parseFloat(e.currentTarget.value))}
+          onChange={setTrackVolume}
           onPointerUp={saveTrackVolume}
         />
       </div>

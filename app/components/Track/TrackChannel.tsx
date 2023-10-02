@@ -19,7 +19,6 @@ import {
   useReverb,
   usePitchShift,
 } from "./Fx";
-import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "@/db";
 import type { JSX } from "react/jsx-runtime";
 
@@ -40,10 +39,6 @@ function TrackChannel({ track, trackId, channels }: Props) {
   const reverb = useReverb();
   const pitchShift = usePitchShift();
 
-  // const currentTracks = useLiveQuery(
-  //   async () => await db.currentTracks.toArray()
-  // );
-
   const currentTracks = JSON.parse(localStorage.getItem("currentTracks")!);
 
   const meters = useRef(
@@ -55,14 +50,6 @@ function TrackChannel({ track, trackId, channels }: Props) {
   const [fxNames, setFxNames] = useState(
     currentTracks && currentTracks[trackId] && currentTracks[trackId].fxNames
   );
-
-  // useEffect(() => {
-  //   const getCurrentTracks = new Promise((resolve) => resolve(currentTracks));
-  //   getCurrentTracks.then((value) => {
-  //     if (!Array.isArray(value)) return;
-  //     setFxNames(value[trackId].fxNames);
-  //   });
-  // }, [currentTracks, trackId]);
 
   const disabled =
     fxNames &&

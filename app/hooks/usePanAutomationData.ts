@@ -12,7 +12,11 @@ type Props = {
   setPan: (arg: number) => void;
 };
 
-type ReadProps = { trackId: number; setPan: (arg: number) => void };
+type ReadProps = {
+  trackId: number;
+  channels: Channel[];
+  setPan: (arg: number) => void;
+};
 
 type WriteProps = {
   id: number;
@@ -20,20 +24,9 @@ type WriteProps = {
 };
 
 function usePanAutomationData({ trackId, channels, pan, setPan }: Props) {
-  const currentTracks = useLiveQuery(
-    async () => await db.currentTracks.toArray()
-  );
-
-  useEffect(() => {
-    const getCurrentTracks = new Promise((resolve) => resolve(currentTracks));
-    getCurrentTracks.then((value) => {
-      if (!Array.isArray(value)) return;
-      setPan(value[trackId].pan);
-    });
-  }, [currentTracks, trackId, setPan]);
-
   useWrite({ id: trackId, value: pan });
-  useRead({ trackId, setPan });
+  useRead({ trackId, channels, setPan });
+
   return null;
 }
 const data = new Map<number, object>();
@@ -68,7 +61,7 @@ function useWrite({ id, value }: WriteProps) {
 }
 
 // !!! --- READ --- !!! //
-function useRead({ trackId, setPan }: ReadProps) {
+function useRead({ trackId, channels, setPan }: ReadProps) {
   const currentTracks = useLiveQuery(() => db.currentTracks.toArray());
   const playbackMode = currentTracks && currentTracks[trackId].panMode;
 
@@ -83,10 +76,11 @@ function useRead({ trackId, setPan }: ReadProps) {
       t.schedule(() => {
         if (playbackMode !== "read") return;
 
+        channels[trackId].pan.value = data.value;
         setPan(data.value);
       }, data.time);
     },
-    [playbackMode, setPan]
+    [playbackMode, channels, setPan]
   );
 
   let queryData = [];
@@ -100,6 +94,7 @@ function useRead({ trackId, setPan }: ReadProps) {
 
   useEffect(() => {
     if (playbackMode !== "read" || !panData) return;
+
     for (const value of panData.data.values()) {
       setParam(value.id, value);
     }
