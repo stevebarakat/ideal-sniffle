@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { loaded, Channel, Player, Transport as t } from "tone";
 
 type Props = {
-  tracks: SourceTrack[];
+  tracks: TrackSettings[];
 };
 
 function useTracks({ tracks }: Props) {

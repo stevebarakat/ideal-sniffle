@@ -28,19 +28,19 @@ export const Mixer = ({
   currentMain,
   currentTracks,
 }: Props) => {
-  // const [tracks, setTracks] = useState(sourceSong.tracks);
-  const tracks = currentTracks.map((track: TrackSettings) => ({
-    ...track,
-    ...defaultTrackData,
-    songSlug: sourceSong.slug,
-  }));
-
   useEffect(() => {
     localStorage.setItem("sourceSong", JSON.stringify(sourceSong));
-    localStorage.setItem("currentTracks", JSON.stringify(tracks));
-  }, [tracks, sourceSong]);
+    localStorage.setItem("currentMain", JSON.stringify(currentMain));
+    localStorage.setItem("currentTracks", JSON.stringify(currentTracks));
 
-  const { channels, isLoading } = useTracks({ tracks });
+    // (async () => {
+    currentTracks.forEach(async (currentTrack) => {
+      await db.currentTracks.put(currentTrack);
+    });
+    // })();
+  }, [currentTracks, sourceSong, currentMain]);
+
+  const { channels, isLoading } = useTracks({ tracks: currentTracks });
 
   // (function loadSettings() {
   //   // t.bpm.value = sourceSong.bpm;
@@ -48,7 +48,7 @@ export const Mixer = ({
   //   // const scaled = dbToPercent(log(volume));
   //   // Destination.volume.value = scaled;
 
-  //   tracks.forEach((currentTrack: TrackSettings, trackId: number) => {
+  //   currentTracks.forEach((currentTrack: TrackSettings, trackId: number) => {
   //     const value = currentTrack.volume;
   //     const scaled = dbToPercent(log(value));
 
@@ -73,7 +73,7 @@ export const Mixer = ({
 
           <ImportExport mixData={mixData} />
           <div className="channels">
-            {tracks.map((track, i) => (
+            {currentTracks.map((track, i) => (
               <TrackChannel
                 key={track.id}
                 track={track}
