@@ -1,4 +1,4 @@
-// import { MixerMachineContext } from "@/context/MixerMachineContext";
+import { useState } from "react";
 import Toggle from "./Buttons/Toggle";
 import { Button } from "./Buttons";
 import {
@@ -8,9 +8,7 @@ import {
   CircleDot,
   MinusCircle,
 } from "lucide-react";
-import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "@/db";
-import { useEffect, useState } from "react";
 
 type Props = {
   trackId: number;
@@ -18,36 +16,19 @@ type Props = {
 };
 
 function PlaybackMode({ trackId, param }: Props) {
-  const currentTracks = useLiveQuery(() => db.currentTracks.toArray());
+  const currentTracks = JSON.parse(localStorage.getItem("currentTracks")!);
   const [playbackMode, setPlaybackMode] = useState(
-    currentTracks &&
-      currentTracks[trackId] &&
-      currentTracks[trackId][`${param}Mode`]
+    currentTracks[trackId][`${param}Mode`]
   );
 
   function setTrackPlaybackMode(e: React.FormEvent<HTMLInputElement>): void {
+    const currentTracks = JSON.parse(localStorage.getItem("currentTracks")!);
     const data = JSON.parse(JSON.stringify(currentTracks));
     data[trackId][`${param}Mode`] = e.currentTarget.value;
     setPlaybackMode(e.currentTarget.value);
-
-    if (!currentTracks) return;
-    (async () => {
-      await db.currentTracks
-        .where("path")
-        .equals(currentTracks[trackId].path)
-        .modify({
-          [`${param}Mode`]: e.currentTarget.value,
-        });
-    })();
+    currentTracks[trackId][`${param}Mode`] = e.currentTarget.value;
+    localStorage.setItem("currentTracks", JSON.stringify(currentTracks));
   }
-
-  useEffect(() => {
-    const getCurrentTracks = new Promise((resolve) => resolve(currentTracks));
-    getCurrentTracks.then((value) => {
-      if (!Array.isArray(value)) return;
-      setPlaybackMode(value[trackId][`${param}Mode`]);
-    });
-  }, [currentTracks, trackId, param]);
 
   function clearData() {
     db[`${param}Data`].where("id").equals(`${param}Data${trackId}`).delete();

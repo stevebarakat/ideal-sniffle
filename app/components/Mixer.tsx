@@ -29,9 +29,16 @@ export const Mixer = ({
   currentTracks,
 }: Props) => {
   useEffect(() => {
-    localStorage.setItem("sourceSong", JSON.stringify(sourceSong));
-    localStorage.setItem("currentMain", JSON.stringify(currentMain));
-    localStorage.setItem("currentTracks", JSON.stringify(currentTracks));
+    const keys = Object.keys(localStorage);
+    const hasSourceSong = keys.some((key) => key === "sourceSong");
+    const hasCurrentMain = keys.some((key) => key === "currentMain");
+    const hasCurrentTracks = keys.some((key) => key === "currentTracks");
+    !hasSourceSong &&
+      localStorage.setItem("sourceSong", JSON.stringify(sourceSong));
+    !hasCurrentMain &&
+      localStorage.setItem("currentMain", JSON.stringify(currentMain));
+    !hasCurrentTracks &&
+      localStorage.setItem("currentTracks", JSON.stringify(currentTracks));
 
     db.currentMain.put({
       ...currentMain,

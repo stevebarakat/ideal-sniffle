@@ -1,14 +1,7 @@
-import { MixerMachineContext } from "@/context/MixerMachineContext";
-import Toggle from "./Buttons/Toggle";
 import { Button } from "./Buttons";
-import {
-  XCircle,
-  PlayCircle,
-  CircleDotDashed,
-  CircleDot,
-  MinusCircle,
-} from "lucide-react";
+import { XCircle } from "lucide-react";
 import { db } from "@/db";
+import { useState } from "react";
 
 type Props = {
   trackId: number;
@@ -16,23 +9,16 @@ type Props = {
 };
 
 function PlaybackMode({ trackId, param }: Props) {
-  const { send } = MixerMachineContext.useActorRef();
-  const playbackMode = MixerMachineContext.useSelector(
-    (state) => state.context.currentTracks[trackId][`${param}Mode`]
+  const currentTracks = JSON.parse(localStorage.getItem("currentTracks")!);
+
+  const [playbackMode, setPlaybackMode] = useState(
+    currentTracks[trackId][`${param}Mode`]
   );
-  const currentTracks = MixerMachineContext.useSelector(
-    (state) => state.context.currentTracks
-  );
-  function setPlaybackMode(e: React.FormEvent<HTMLSelectElement>): void {
+  function setTrackPlaybackMode(e: React.FormEvent<HTMLSelectElement>): void {
     const ctCopy = JSON.parse(JSON.stringify(currentTracks));
     ctCopy[trackId][`${param}Mode`] = e.currentTarget.value;
     db.currentTracks.put({ id: "currentTracks", data: ctCopy });
-    send({
-      type: "SET_PLAYBACK_MODE",
-      value: e.currentTarget.value,
-      param,
-      trackId,
-    });
+    setPlaybackMode(e.currentTarget.value);
   }
 
   function clearData() {
@@ -45,7 +31,8 @@ function PlaybackMode({ trackId, param }: Props) {
       <select
         name="playbackMode"
         id="playbackMode-select"
-        onChange={setPlaybackMode}
+        onChange={setTrackPlaybackMode}
+        value={playbackMode}
       >
         <option value="static">Static</option>
         <option value="read">Read</option>
