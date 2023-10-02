@@ -32,7 +32,7 @@ function Index() {
   const currentTracks = sourceTracks.map((track: TrackSettings) => ({
     ...track,
     ...defaultTrackData,
-    songSlug: sourceSong.slug,
+    songSlug: sourceSong?.slug,
   }));
 
   console.log("mixData", mixData);

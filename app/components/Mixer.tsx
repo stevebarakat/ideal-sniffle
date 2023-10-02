@@ -33,8 +33,12 @@ export const Mixer = ({
     localStorage.setItem("currentMain", JSON.stringify(currentMain));
     localStorage.setItem("currentTracks", JSON.stringify(currentTracks));
 
-    db.currentMain.put(currentMain);
-    db.sourceSong.put(sourceSong);
+    db.currentMain.put({
+      ...currentMain,
+    });
+    db.sourceSong.put({
+      ...sourceSong,
+    });
 
     currentTracks.forEach(async (currentTrack) => {
       await db.currentTracks.put(currentTrack);

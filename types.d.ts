@@ -42,6 +42,7 @@ declare global {
   };
 
   type MainSettings = {
+    id: string;
     volume: number;
   };
 
