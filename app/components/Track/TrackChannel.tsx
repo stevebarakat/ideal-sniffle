@@ -40,27 +40,29 @@ function TrackChannel({ track, trackId, channels }: Props) {
   const reverb = useReverb();
   const pitchShift = usePitchShift();
 
-  const currentTracks = useLiveQuery(
-    async () => await db.currentTracks.toArray()
-  );
+  // const currentTracks = useLiveQuery(
+  //   async () => await db.currentTracks.toArray()
+  // );
+
+  const currentTracks = JSON.parse(localStorage.getItem("currentTracks")!);
 
   const meters = useRef(
     Array(channels.length).fill(new Meter({ channels: 2 }))
   );
 
-  const [currentTrackFx, setCurrentTrackFx] = useState<Fx>(new Volume());
+  const [currentTrackFx, setCurrentTrackFx] = useState<Fx[]>([new Volume()]);
 
   const [fxNames, setFxNames] = useState(
     currentTracks && currentTracks[trackId] && currentTracks[trackId].fxNames
   );
 
-  useEffect(() => {
-    const getCurrentTracks = new Promise((resolve) => resolve(currentTracks));
-    getCurrentTracks.then((value) => {
-      if (!Array.isArray(value)) return;
-      setFxNames(value[trackId].fxNames);
-    });
-  }, [currentTracks, trackId]);
+  // useEffect(() => {
+  //   const getCurrentTracks = new Promise((resolve) => resolve(currentTracks));
+  //   getCurrentTracks.then((value) => {
+  //     if (!Array.isArray(value)) return;
+  //     setFxNames(value[trackId].fxNames);
+  //   });
+  // }, [currentTracks, trackId]);
 
   const disabled =
     fxNames &&
@@ -77,22 +79,26 @@ function TrackChannel({ track, trackId, channels }: Props) {
   }
 
   useEffect(() => {
-    fxNames?.forEach((name, fxId) => {
+    fxNames.forEach((name, fxId) => {
       switch (name) {
         case "nofx":
-          setCurrentTrackFx(nofx);
+          currentTrackFx[fxId] = nofx;
+          setCurrentTrackFx(() => currentTrackFx);
           break;
 
         case "reverb":
-          setCurrentTrackFx(reverb);
+          currentTrackFx[fxId] = reverb;
+          setCurrentTrackFx(() => currentTrackFx);
           break;
 
         case "delay":
-          setCurrentTrackFx(delay);
+          currentTrackFx[fxId] = delay;
+          setCurrentTrackFx(() => currentTrackFx);
           break;
 
         case "pitchShift":
-          setCurrentTrackFx(pitchShift);
+          currentTrackFx[fxId] = pitchShift;
+          setCurrentTrackFx(() => currentTrackFx);
           break;
 
         default:
@@ -101,8 +107,10 @@ function TrackChannel({ track, trackId, channels }: Props) {
     });
 
     channels[trackId].disconnect();
-    channels[trackId].connect(meters.current[trackId].toDestination());
-    currentTrackFx && channels[trackId].chain(currentTrackFx, Destination);
+    channels[trackId].connect(meters.current[2].toDestination());
+    currentTrackFx.forEach((ctf) => {
+      ctf && channels[trackId].chain(ctf, Destination);
+    });
   });
 
   let currentFx: JSX.Element[] = [];
